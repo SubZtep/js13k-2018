@@ -1,0 +1,15 @@
+{
+  "name": "js13k",
+  "description": "2018 js13kgames entry",
+  "version": "1.0.0",
+  "author": "Andras Serfozo",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "eslint": "^5.4.0",
+    "gulp": "^4.0.0",
+    "gulp-babel-minify": "^0.4.3",
+    "gulp-concat": "^2.6.1",
+    "gulp-pug": "^4.0.1"
+  }
+}

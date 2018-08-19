@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<title>js13k</title>
+<script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
+<script src="core.js"></script>
+<a-scene background="color:#111" stats shadow="type:pcfsoft">
+  <a-assets><img id="aumPic" src="aum.svg"></a-assets>
+  <a-entity light="type: ambient; color: #BBB"></a-entity>
+  <a-entity light="type: directional; castShadow: true; color: #FFF; intensity: 0.6;" position="-0.5 1 1"></a-entity>
+  <a-plane width="40" height="40" color="#444" rotation="-90 0 0" position="0 -0.5 0" material="src: #aumPic" shadow="cast:true;receive:true"></a-plane>
+  <a-entity geometry="primitive:sphere;radius:100;" material="shader:gradient;side:back;exponent:1.2;topColor:0 0 255;bottomColor:0 255 0"></a-entity>
+</a-scene>
+<script src="game.js"></script>

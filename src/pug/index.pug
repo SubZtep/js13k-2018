@@ -1,0 +1,64 @@
+doctype html
+title js13k
+script(src="https://aframe.io/releases/0.8.2/aframe.min.js")
+script(src="core.js")
+
+a-scene(
+	background="color:#111"
+	stats
+	shadow="type:pcfsoft"
+)
+	a-assets
+		img#aumPic(src="aum.svg")
+
+
+	//-a-box(position="-1 0.5 -3" rotation="0 45 0" color="#660000")
+	//-a-ring(position="0 0 -5" color="yellow" radius-inner="1.5" radius-outer="2")
+	//-a-sky(color="#111111")
+
+	//-Lights
+	//-a-light(type="ambient" color="#669966")
+	a-entity(
+		light="type: ambient; color: #BBB"
+	)
+	a-entity(
+		light="type: directional; castShadow: true; color: #FFF; intensity: 0.6;"
+		position="-0.5 1 1"
+	)
+
+
+	//-
+		a-text(
+			value="Hello, World!"
+			align="right"
+			anchor="right"
+			baseline="bottom"
+			color="#ccc"
+		)
+
+
+	a-plane(
+		width="40"
+		height="40"
+		color="#444"
+		rotation="-90 0 0"
+		position="0 -0.5 0"
+		material="src: #aumPic"
+		shadow="cast:true;receive:true"
+	)
+
+	a-entity(
+		geometry="primitive:sphere;radius:100;"
+		material="shader:gradient;side:back;exponent:1.2;topColor:0 0 255;bottomColor:0 255 0"
+	)
+
+//-
+	a-entity(
+		geometry="primitive: sphere; radius: 100;"
+		material="shader: gradient; exponent: 1.2; topColor: {x:0,y:0,z:255}, bottomColor: {x:0,y:255,z:0}, side: back"
+	)
+
+	material="shader: gradient; side: back; exponent: 1.2; topColor:{r:0,g:225,b:255};bottomColor:{r:0,g:255,b:0}"
+
+
+script(src="game.js")
