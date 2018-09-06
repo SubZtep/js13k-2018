@@ -1,0 +1,19 @@
+a-assets
+	//-img#aumPic(src="aum.svg")
+	img#aumPic(src="Tamil_Om.svg")
+	img#bgPic(src="bg.svg")
+
+	a-mixin#obstacle(
+		obstacle
+		geometry="primitive:sphere;segmentsWidth:9;segmentsHeight:18;radius:0.3;"
+		material="color:#4682B4;metalness:0.3;side:front"
+	)
+	//- obstacle side:double?
+
+	a-mixin#ring(
+		geometry="primitive:cylinder;segmentsHeight:9;segmentsRadial:36;openEnded:true"
+		material="color:#5ce0b6;side:back;opacity:0.4"
+		rotation="90 0 0"
+		scale="5 0.5 5"
+	)
+	//- ring side:back,front,double?

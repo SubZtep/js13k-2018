@@ -54,18 +54,124 @@ AFRAME.registerShader('gradient', {
 	].join('\n')
 })
 
+AFRAME.registerComponent('camera-cursor', {
+	init() {
+		state.player = this.el
+		state.ray = document.querySelector('#ray')
+		state.crosshair = document.querySelector('#crosshair')
+		state.hud = document.querySelector('#hud')
+	}
+})
+
 
 AFRAME.registerComponent('cursor-listener', {
 	init: function () {
-		this.el.addEventListener('click', function (evt) {
-			//this.setAttribute('visible', 'false')
-			this.object3D.visible = false
-			//console.log('I was clicked at: ', evt.detail.intersection.point)
+
+		/* this.el.addEventListener('raycaster-intersected', e => {
+			// console.log('e', ins.aimedObj)
+
+			//if (ins.aimedObj == e.target) {
+			//	ins.aimDirty = false
+			//	return
+			//}
+			//ins.aimDirty = true
+
+			//if (ins.aimedObj != null && ins.aimedObj != e.target) {
+			// if (ins.aimedObj != null) {
+			//	//console.log('juhuu')
+			//	ins.aimedObj.setAttribute('metalness', 0.3)
+			//}
+
+			//if (ins.aimedObj != e.target) {
+			//	e.target.setAttribute('metalness', 0.3)
+			//}
+
+			//if (ins.aimedObj == null) {
+			//ins.aimedObj = e.target
+			e.target.setAttribute('metalness', 0.8)
+			//}
+		}),
+
+		this.el.addEventListener('raycaster-intersected-cleared', e => {
+			e.target.setAttribute('metalness', 0.3)
+		}), */
+
+		this.el.addEventListener('click', e => {
+			if (e.detail.intersection.object.el.id == 'startBtn') {
+				ins.start()
+			} else {
+				e.target.object3D.visible = false
+				ins.movePlayer(-2)
+			}
 		})
 	}
 })
 
-let ins = null // instance
+AFRAME.registerComponent('obstacle', {
+	check() {
+		if (this.el.classList.contains('obs') && this.el.getAttribute('position').z > state.playerPosZ) {
+			Game.destroy(this)
+			ins.movePlayer(2)
+		}
+	}
+})
+
+let ins = null, // instance
+	state = {
+		scene: null,                        // A-Frame scene object
+		sky: null,                          // A-Frame sky object
+		player: null,                       // A-Frame player object (the camera)
+		hud: null,                          // A-Frame HUD object
+		bin: [],                            // Temporary objects
+		lastRender: null,                   // Last render timestamp since start
+		playerStartPosZ: -10,               // Player start position on Z axis
+		playerPosZ: null,                   // Player currect position on Z axis
+		crosshair: null,                    // Crosshair object
+		aimTimeout: null,                   // Aim timeout
+		aimLength: 500,                     // Aim length in ms
+		aimedObj: null,                     // Current aimed obj
+		ray: null,                          // A-Frame raycaster
+		int: null,                          // Effect window setInterval id
+		minZ: -55,                          // Object spawn position on Z axis
+		                                    //-15 (-15 is just close to the player, not the whole tube)
+		maxZ: 5,                            // Object destroy position on Z axis
+		rings: [],                          // Object pool for tube rings
+		obstacles: [],                      // Object pool for obstacles
+		ringDistance: 1,                    // Distance between two rings
+		                                    //0.6
+		obstacleDistance: 3,                // Distance between two obstacles
+		                                    //3 (0.1 is a lot of objects)
+		effect: null,                       // Current effect
+		effectSpeed: 0.01,                  // Effect speed
+	},
+	effects = { // All Effects
+		wave: {
+			min: 0.01,
+			max: 0.6,
+			val: 0
+		},
+		skyOpacity: {
+			min: 0.1,
+			max: 0.5,
+			val: 0.1
+		},
+		ringOpacity: {
+			min: 0.2,
+			max: 0.8,
+			val: 0.2
+		},
+		ringScale: {
+			min: 2.8,
+			max: 5,
+			val: 5
+		},
+		ringSpeed: {
+			min: 1,
+			max: 1,//3,
+			val: 1
+		}
+	}
+
 
 class Game
 {
@@ -74,35 +180,93 @@ class Game
 		// Singleton
 		if (!ins) ins = this
 
-		// A-Frame scene object
-		ins.scene = document.querySelector('a-scene')
+		state.scene = document.querySelector('a-scene')
+		state.sky = document.querySelector('a-sky')
 
-		// Last render timestamp since start
-		ins.lastRender = 1
+		if (state.scene.hasLoaded) {
+			ins.init()
+		} else {
+			state.scene.addEventListener('loaded', ins.init);
+		}
 
-		// Object spawn position on Z axis
-		ins.minZ = -20
+	}
 
-		// Object destroy position on Z axis
-		ins.maxZ = 5
+	init()
+	{
+		// set to the default position
+		ins.movePlayer()
 
-		// Object pool for tube rings
-		ins.rings = []
+		// Start
+		//ins.welcome()
+		//for test
+		ins.start()
+	}
 
-		// Object pool for obstacles
-		ins.obstacles = []
+	welcome(replay = false)
+	{
+		// Game name text
+		let title = Game.newElement('a-text', {
+			value: 'Whirled on the Spirit Spiral',
+			position: '0 11 -55',
+			align: 'center',
+			width: 150,
+			'letter-spacing': -4
+		}, state.scene)
+		Game.newElement('a-animation', {
+			attribute: 'color',
+			from: '#fff',
+			to: '#660000',
+			easing: 'ease-in',
+			dur: 8000,
+			repeat: 'indefinite'
+		}, title)
+		state.bin.push(title)
 
-		// Distance between two rings
-		ins.ringDistance = 2
+		// Start button
+		state.bin.push(Game.newElement('a-sphere', {
+			//'cursor-listener': null,
+			class: 'obs',
+			id: 'startBtn',
+			position: '0 0 -55',
+			radius: 6.5,
+			color: '#4682B4',
+			metalness: 3,
+			opacity: 0.5,
+			'segments-Width': 6,
+			'segments-Height': 8
+		}, state.scene))
 
-		// Distance between two obstacles
-		ins.obstacleDistance = 5
+		if (!replay) {
+			// Description text
+			state.bin.push(Game.newElement('a-text', {
+				value: 'Welcome, your only goal is reach the symbol.\nJust look at the spheres and it boost you well.\nJS12K 2K8 - @SubZtep',
+				position: '0 -12 -55',
+				align: 'center',
+				width: 50,
+				'line-height': 55,
+				'letter-spacing': -4
+			}, state.scene))
+			//TODO: Add Starlin and Petr as special thanks, tell u have to reach the aum and plug in the connector to go online
+		}
+	}
+
+	emptyBin() {
+		while (state.bin.length > 0) {
+			let item = state.bin.pop()
+			item.parentNode.removeChild(item)
+		}
+	}
+
+	// Setup environment and start game loop
+	start()
+	{
+		ins.emptyPool(state.bin)
 
 		// Setup rings
-		for (let i = ins.minZ; i < ins.maxZ; i += ins.ringDistance) {
-			ins.rings.push(
+		for (let i = state.minZ; i < state.maxZ; i += state.ringDistance) {
+			state.rings.push(
 				new GameObject(
-					ins.createRing(),
+					state.scene.components.pool__rings.requestEntity(),
 					[0, 2, i],
 					0.003
 				)
@@ -110,157 +274,147 @@ class Game
 		}
 
 		// Setup obstacles
-		for (let i = ins.minZ; i < ins.maxZ; i += ins.obstacleDistance) {
-			ins.obstacles.push(
+		for (let i = state.minZ; i < state.maxZ; i += state.obstacleDistance) {
+			let obj = state.scene.components.pool__obstacles.requestEntity()
+
+			// Only drop obstacles before the player
+			if (i+5 > state.playerPosZ) {
+				obj.object3D.visible = false
+			} else {
+				obj.setAttribute('class', 'obs')
+			}
+
+			state.obstacles.push(
 				new GameObject(
-					ins.createObstacle(),
-					[(Math.random() * 4 - 2), (Math.random() * 4 + 1), i],
-					0.001
+					obj,
+					[(Math.random() * 4 - 2), (Math.random() * 4 + 1) - 3, i],
+					0.001, //0.008,
+					1
 				)
 			)
 		}
 
-		// Create crosshair
-		this.createCursor()
+		// Init player
+		ins.movePlayer()
 
+		// Start game
+		state.lastRender = null
+		state.effect = null
 		window.requestAnimationFrame(ins.gameLoop)
 	}
 
+	finish()
+	{
+		// Remove objects
+		ins.emptyPool(state.rings)
+		ins.emptyPool(state.obstacles)
+
+		// Clear HUD
+		ins.displayHUD()
+
+		// Show finish text
+		state.bin.push(Game.newElement('a-text', {
+			value: ins.isWon() ? 'WINNER, juhuu!' : 'Noob',
+			position: '0 -12 -55',
+			align: 'center',
+			width: 50,
+			'line-height': 55,
+			'letter-spacing': -4
+		}, state.scene))
+
+		// Init player
+		ins.movePlayer()
+
+		setTimeout(() => {
+			ins.welcome(true)
+		}, 3000)
+	}
+
+	emptyPool(pool)
+	{
+		while (pool.length > 0) {
+			let item = pool.pop()
+			if (typeof item.parentNode == 'undefined') {
+				item = item.obj
+			}
+			item.parentNode.removeChild(item)
+		}
+	}
+
+	/******************************************************************
+	 *
+	 * GAME LOOP
+	 *
+	 */
+
+	// Calculate objects next position
 	update(progress)
 	{
-		this.movePool(progress, ins.rings, ins.ringDistance)
-		this.movePool(progress, ins.obstacles, ins.obstacleDistance)
+		ins.movePool(progress, state.rings, state.ringDistance)
+		ins.movePool(progress, state.obstacles, state.obstacleDistance)
+
+		// Select effect, if neccessary (different timeline)
+		ins.startEffect()
 	}
 
-	movePool(progress, pool, distance)
-	{
-		let firstValue = null,
-			lastIndex = null,
-			lastValue = null
-
-		for (const [index, obj] of pool.entries()) {
-			if (firstValue == null || obj.pos[2] < firstValue) {
-				firstValue = obj.pos[2]
-			}
-
-			if (lastValue == null || obj.pos[2] > lastValue) {
-				lastIndex = index
-				lastValue = obj.pos[2]
-			}
-
-			obj.recalc(progress)
-		}
-
-		// Smooth recycle object
-		if (firstValue >= ins.minZ + distance) {
-			pool[lastIndex].pos[2] = ins.minZ
-
-			// In case the obstacles become invisible
-			if (!pool[lastIndex].obj.object3D.visible) {
-				pool[lastIndex].obj.object3D.visible = true
-			}
-		}
-	}
-
+	// Render objects at their current position
 	draw()
 	{
 		// Draw rings
-		for (let ring of ins.rings) {
+		for (let ring of state.rings) {
 			ring.redraw()
 		}
 
 		// Draw obstacles
-		for (let obstacle of ins.obstacles) {
+		for (let obstacle of state.obstacles) {
 			obstacle.redraw()
+			obstacle.obj.components.obstacle.check()
 		}
+
+		// Move player (if necessary)
+		let z = state.player.object3D.position.z
+		if (z != state.playerPosZ) {
+			z += z < state.playerPosZ ? 0.1 : -0.1
+			state.player.object3D.position.z = Math.abs(state.playerPosZ + z) < 0.1
+				? state.playerPosZ
+				: parseFloat(parseFloat(z).toFixed(1))
+		}
+
+		ins.playEffect() // Select effect, if neccessary (different timeline)
+		ins.displayHUD()
+		ins.aim()
 	}
 
+	// Game loop rotor
 	gameLoop(timestamp)
 	{
-		let progress = timestamp - ins.lastRender
+		//TODO: Lost window focus mess up the timestamp
+		if (state.lastRender == null) {
+			state.lastRender = timestamp
+		}
+
+		let progress = timestamp - state.lastRender
 
 		ins.update(progress)
 		ins.draw()
+		state.lastRender = timestamp
 
-		ins.lastRender = timestamp
+		if (ins.isWon() || ins.isLost()) {
+			ins.finish()
+			return
+		}
+
 		window.requestAnimationFrame(ins.gameLoop)
 	}
 
-	createRing()
-	{
-		return Game.newElement('a-ring', {
-			material: 'color:yellow;opacity:0.5',
-			'radius-inner': '2.9',
-			'radius-outer': '3',
-			shadow: 'cast:true;receive:true'
-		}, ins.scene)
-	}
 
-	createObstacle()
-	{
-		return Game.newElement('a-box', {
-			'cursor-listener': null,
-			material: 'color:lightblue;opacity:0.9;',
-			width: '0.8',
-			height: '0.8',
-			depth: '0.8'
-		}, ins.scene)
-	}
+	/******************************************************************
+	 *
+	 * OBJECTS
+	 *
+	 */
 
-	createCursor()
-	{
-		let el1 = Game.newElement('a-entity', {
-			position: '0 2.2 4'
-		}, ins.scene)
-
-		let el2 = Game.newElement('a-entity', {
-			'camera': null,
-			'look-controls': null,
-			'wasd-controls': null
-		}, el1)
-
-		let el3 = Game.newElement('a-triangle', {
-			material: 'color:#333;shader:flat',
-			position: '0 -0.02 -1',
-			scale: '0.04 0.05 0.04'
-		}, el2)
-
-		let el4 = Game.newElement('a-triangle', {
-			material: 'color:#333;shader:flat',
-			position: '0 0.02 -1',
-			scale: '0.04 0.05 0.04',
-			rotation: '0 0 180'
-		}, el2)
-
-		let el5 = Game.newElement('a-entity', {
-			position: '0 0 -1',
-			geometry: 'primitive:ring;radiusOuter:0.05;radiusInner:0.04',
-			material: 'color:white;shader:flat',
-			cursor: 'fuse:true;fuseTimeout:500',
-			raycaster: 'objects:[cursor-listener]'
-		}, el2)
-
-		let el6 = Game.newElement('a-animation', {
-			begin: 'click',
-			easing: 'ease-in',
-			attribute: 'scale',
-			fill: 'forwards',
-			from: '0.5 0.5 0.5',
-			to: '1 1 1',
-			dur: '100'
-		}, el5)
-
-		let el7 = Game.newElement('a-animation', {
-			begin: 'fusing',
-			easing: 'ease-in',
-			attribute: 'scale',
-			fill: 'backwards',
-			from: '1 1 1',
-			to: '0.5 0.5 0.5',
-			dur: '500'
-		}, el5)
-	}
-
+	// Create new A-Frame object
 	static newElement(name, params = {}, appendEl = null)
 	{
 		let el = document.createElement(name)
@@ -270,7 +424,214 @@ class Game
 		if (appendEl != null) {
 			appendEl.appendChild(el)
 		}
+		else state.scene.appendChild(el)
 		return el
+	}
+
+	// remove obstacle from scene
+	static destroy(obj)
+	{
+		if (typeof obj.material != 'undefined') {
+			obj.material.metalness = 0.3
+		} else {
+			obj.el.setAttribute('material', 'metalness', 0.3)
+		}
+		obj.el.classList.remove('obs')
+		obj.el.object3D.visible = false
+	}
+
+	/******************************************************************
+	 *
+	 * GAMEPLAY
+	 *
+	 */
+
+	// Start aim if ray intersect target, stop if not
+	aim()
+	{
+		let intersects = state.ray.components.raycaster.intersections
+		if (intersects.length > 0) {
+			if (state.aimedObj != intersects[0].object) {
+				ins.endAim()
+				ins.startAim(intersects[0].object)
+			}
+		} else {
+			ins.endAim()
+		}
+	}
+
+	// Keep aiming until shoot
+	startAim(obj)
+	{
+		state.aimedObj = obj
+		state.aimedObj.material.metalness = 0.8
+		state.aimTimeout = setTimeout(ins.shoot, state.aimLength)
+		state.crosshair.emit('aim')
+	}
+
+	// Stop aiming current object
+	endAim()
+	{
+		clearTimeout(state.aimTimeout)
+		if (state.aimedObj) {
+			state.crosshair.emit('endAim')
+			state.crosshair.setAttribute('theta-Length', 360)
+			state.aimedObj.material.metalness = 0.3
+		}
+		state.aimedObj = null
+	}
+
+	// Destroy aimed object and reward player
+	//TODO: pub object back to aframe pool
+	shoot()
+	{
+		if (state.aimedObj) {
+			Game.destroy(state.aimedObj)
+			state.aimedObj = null
+			ins.movePlayer(-2)
+		}
+	}
+
+	// Tells if player won atm
+	isWon()
+	{
+		//return state.playerPosZ <= -50
+		return state.playerPosZ <= state.minZ + 5
+	}
+
+	// Tells if player lost atm
+	isLost()
+	{
+		return state.playerPosZ >= state.maxZ
+	}
+
+	/******************************************************************
+	 *
+	 * EFFECT
+	 *
+	 */
+
+	// Update HUD values
+	displayHUD()
+	{
+		state.hud.setAttribute(
+			'value',
+			state.rings.length > 0
+				? `minZ: ${state.minZ}, maxZ: ${state.maxZ}, playerPosZ: ${state.playerPosZ}, `+
+				  `realpos: ${parseFloat(state.player.object3D.position.x).toFixed(2)},`+
+				  `${parseFloat(state.player.object3D.position.y).toFixed(2)},`+
+				  `${parseFloat(state.player.object3D.position.z).toFixed(2)}, effect: ${state.effect}`
+				: ''
+		)
+	}
+
+	// Start next effect loop
+	startEffect()
+	{
+		if (state.int == null) {
+			// Select effect
+			let keys = Object.keys(effects),
+				key = keys[Math.floor(Math.random() * keys.length)]
+			state.effect = effects[key]
+			console.log('Current effect', key)
+
+			// Set effect speed
+			state.effectSpeed = 0.005 //Number.isInteger(ins.effect.min) ? 1 : 0.1
+
+			// Choose effect direction
+			if (
+				(state.effect.val <= state.effect.min && state.effectSpeed < 0) ||
+				(state.effect.val >= state.effect.max && state.effectSpeed > 0)
+			) {
+				state.effectSpeed *= -1
+			}
+
+			// Run effect
+			state.int = window.setInterval(() => {
+				state.effect.val += state.effectSpeed
+				if (
+					(state.effectSpeed > 0 && state.effect.val >= state.effect.max) ||
+					(state.effectSpeed < 0 && state.effect.val <= state.effect.min)
+				) {
+					clearInterval(state.int)
+					state.int = null
+				}
+			}, 10)
+		}
+	}
+
+	// Play various effects
+	playEffect()
+	{
+		if (state.effect != null) {
+			// Sky effect
+			state.sky.setAttribute('opacity', effects.skyOpacity.val)
+
+			// Ring effects
+			for (const [index, obj] of state.rings.entries()) {
+				if (obj.type == 0) {
+					let rad = (state.rings.length / 10) * index,
+						offset = Math.sin((rad * Math.PI)/5) * effects.wave.val
+					obj.pos[1] = offset
+
+					obj.obj.setAttribute('opacity', effects.ringOpacity.val)
+					obj.obj.setAttribute('scale', `5 0.5 ${effects.ringScale.val}`)
+				}
+			}
+		}
+	}
+
+	/******************************************************************
+	 *
+	 * MOVING
+	 *
+	 */
+
+	//WIP move pool and other things
+	movePool(progress, pool, distance)
+	{
+		if (pool.length == 0) return // removable
+
+		let firstValue = null,
+			lastIndex = null,
+			lastValue = null
+
+		for (let [index, obj] of pool.entries()) {
+			if (firstValue == null || obj.pos[2] < firstValue) {
+				firstValue = obj.pos[2]
+			}
+
+			if (lastValue == null || obj.pos[2] > lastValue) {
+				lastIndex = index
+				lastValue = obj.pos[2]
+			}
+
+			obj.recalc(progress, obj.type == 0 ? effects.ringSpeed.val : 1)
+		}
+
+		// Smooth recycle object
+		if (firstValue >= state.minZ + distance) {
+			pool[lastIndex].pos[2] = state.minZ
+			pool[lastIndex].redraw() // otherwise player get punished
+
+			// Be sure it's visible (eg. obstacles become invisible behind the player)
+			if (!pool[lastIndex].obj.object3D.visible) {
+				pool[lastIndex].obj.object3D.visible = true
+				pool[lastIndex].obj.classList.add('obs')
+			}
+		}
+	}
+
+	// Move player back/forward or set to the default position
+	movePlayer(dist = null)
+	{
+		if (dist == null) {
+			// Move player to default position
+			state.playerPosZ = state.playerStartPosZ
+			state.player.object3D.position.z = state.playerPosZ
+		} else {
+			state.playerPosZ += dist
+		}
 	}
 }
 
@@ -281,17 +642,20 @@ class GameObject
 	 * @param object obj Game object
 	 * @param array pos Object position [x, y, z]
 	 * @param float speed Object speed
+	 * @param int type (0: ring, 1: obstacle)
 	 */
-	constructor(obj, pos, speed)
+	constructor(obj, pos, speed, type = 0)
 	{
 		this.obj = obj
 		this.pos = pos
 		this.speed = speed
+		this.type = type
+		this.rot = [0, 0, 0]
 	}
 
-	recalc(progress)
+	recalc(progress, speedMulti = 1)
 	{
-		this.pos[2] += progress * this.speed
+		this.pos[2] += progress * this.speed * speedMulti
 	}
 
 	redraw()

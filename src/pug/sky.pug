@@ -1,0 +1,25 @@
+//-a-sky(color="#111111")
+	a-sky(
+		src="#aumPic"
+		opacity=0.1
+		repeat=2
+	)
+a-sky(
+	src="#bgPic"
+	repeat="40 20"
+)
+
+
+//- SKY
+	a-entity(
+	a-entity(
+		geometry="primitive:sphere;radius:100;"
+		material="shader:gradient;side:back;exponent:1.2;topColor:0 0 255;bottomColor:0 255 0"
+	)
+//- SKY
+	a-entity(
+		geometry="primitive: sphere; radius: 100;"
+		material="shader: gradient; exponent: 1.2; topColor: {x:0,y:0,z:255}, bottomColor: {x:0,y:255,z:0}, side: back"
+		material="shader: gradient; side: back; exponent: 1.2; topColor:{r:0,g:225,b:255};bottomColor:{r:0,g:255,b:0}"
+	)
+

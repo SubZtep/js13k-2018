@@ -1,64 +1,80 @@
 doctype html
 title js13k
-script(src="https://aframe.io/releases/0.8.2/aframe.min.js")
+//-script(src="https://aframe.io/releases/0.8.2/aframe.min.js")
+script(src="aframe.min.js")
 script(src="core.js")
 
 a-scene(
-	background="color:#111"
+	background="color:#030366"
 	stats
-	shadow="type:pcfsoft"
+	pool__rings="mixin:ring;size:10;dynamic:true"
+	pool__obstacles="mixin:obstacle;size:10;dynamic:true"
 )
-	a-assets
-		img#aumPic(src="aum.svg")
+	include assets.pug
+	include lights.pug
+	include sky.pug
 
-
-	//-a-box(position="-1 0.5 -3" rotation="0 45 0" color="#660000")
-	//-a-ring(position="0 0 -5" color="yellow" radius-inner="1.5" radius-outer="2")
-	//-a-sky(color="#111111")
-
-	//-Lights
-	//-a-light(type="ambient" color="#669966")
-	a-entity(
-		light="type: ambient; color: #BBB"
+	//- Player
+	a-camera(
+		camera-cursor
+		wasd-controls="acceleration:500"
+		fov="60"
 	)
-	a-entity(
-		light="type: directional; castShadow: true; color: #FFF; intensity: 0.6;"
-		position="-0.5 1 1"
-	)
-
-
-	//-
-		a-text(
-			value="Hello, World!"
-			align="right"
-			anchor="right"
-			baseline="bottom"
-			color="#ccc"
+		a-triangle(
+			material="color:#ff0000;shader:flat;opacity:0.65"
+			position="0 -0.012 -1"
+			scale="0.025 0.025 1"
+		)
+		a-triangle(
+			material="color:#ff0000;shader:flat;opacity:0.65"
+			position="0 0.012 -1"
+			scale="0.025 0.025 1"
+			rotation="0 0 180"
+		)
+		a-entity#ray(
+			position="0 0 0"
+			raycaster="objects:.obs;far:60;recursive:false;showLine:true"
+			line="color: blue"
+			cursor="fuse:true;fuseTimeout:500"
+		)
+		a-ring#crosshair(
+			position="0 0 -0.99"
+			radius-outer="0.05"
+			radius-inner="0.04"
+			theta-start="90"
+			material="color:#000;shader:flat"
+		)
+			a-ring(
+				position="0 0 -1.1"
+				radius-outer="0.06"
+				radius-inner="0.04"
+				material="color:#fff;shader:flat;opacity:0.3"
+			)
+			//- dur = state.aimLength
+			a-animation(
+				begin="aim"
+				end="endAim"
+				easing="ease-out"
+				attribute="theta-Length"
+				fill="forwards"
+				from="45"
+				to="360"
+				dur="500"
+			)
+		a-text#hud(
+			value=""
+			position="0 20 -50"
+			align="center"
+			width="50"
 		)
 
 
-	a-plane(
-		width="40"
-		height="40"
-		color="#444"
-		rotation="-90 0 0"
-		position="0 -0.5 0"
-		material="src: #aumPic"
-		shadow="cast:true;receive:true"
+	a-image(
+		src="#aumPic"
+		position="0 0 -55"
+		width="8"
+		height="8"
 	)
 
-	a-entity(
-		geometry="primitive:sphere;radius:100;"
-		material="shader:gradient;side:back;exponent:1.2;topColor:0 0 255;bottomColor:0 255 0"
-	)
-
-//-
-	a-entity(
-		geometry="primitive: sphere; radius: 100;"
-		material="shader: gradient; exponent: 1.2; topColor: {x:0,y:0,z:255}, bottomColor: {x:0,y:255,z:0}, side: back"
-	)
-
-	material="shader: gradient; side: back; exponent: 1.2; topColor:{r:0,g:225,b:255};bottomColor:{r:0,g:255,b:0}"
-
-
-script(src="game.js")
+script.
+	const game = new Game()
