@@ -1,0 +1,39 @@
+//- Start button
+a-entity#menu
+	a-text(
+		value="Whirled on the Spirit Spiral"
+		position="0 11 -55"
+		align="center"
+		width="150"
+		letter-spacing="-4"
+	)
+		a-animation(
+			attribute="color"
+			from="#fff"
+			to="#660000"
+			easing="ease-in"
+			dur="8000"
+			repeat="indefinite"
+		)
+
+	a-sphere#startBtn.obs(
+		position="0 0 -55"
+		radius="6.5"
+		color="#4682B4"
+		metalness="3"
+		opacity="0.5"
+		segments-Width="6"
+		segments-Height="8"
+	)
+
+	//- Intro text
+	a-text#msg(
+		value="Welcome, your only goal is reach the symbol.\n"+
+			"Just look at the spheres and it boost you well.\n"+
+			"JS12K 2K8 - @SubZtep"
+		position="0 -12 -55"
+		align="center"
+		width="50"
+		line-height="55"
+		letter-spacing="-4"
+	)

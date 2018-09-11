@@ -11,8 +11,17 @@ a-scene(
 	pool__obstacles="mixin:obstacle;size:10;dynamic:true"
 )
 	include assets.pug
-	include lights.pug
-	include sky.pug
+	include skylights.pug
+
+
+	a-image(
+		src="#aumPic"
+		position="0 0 -55"
+		width="8"
+		height="8"
+	)
+
+	include menu.pug
 
 	//- Player
 	a-camera(
@@ -33,10 +42,16 @@ a-scene(
 		)
 		a-entity#ray(
 			position="0 0 0"
-			raycaster="objects:.obs;far:60;recursive:false;showLine:true"
-			line="color: blue"
+			raycaster="objects:.obs;far:60;recursive:false"
 			cursor="fuse:true;fuseTimeout:500"
 		)
+		//-
+			a-entity#ray(
+				position="0 0 0"
+				raycaster="objects:.obs;far:60;recursive:false;showLine:true"
+				line="color: blue"
+				cursor="fuse:true;fuseTimeout:500"
+			)
 		a-ring#crosshair(
 			position="0 0 -0.99"
 			radius-outer="0.05"
@@ -69,12 +84,6 @@ a-scene(
 		)
 
 
-	a-image(
-		src="#aumPic"
-		position="0 0 -55"
-		width="8"
-		height="8"
-	)
 
 script.
 	const game = new Game()

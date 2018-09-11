@@ -11,16 +11,25 @@
   <a-entity light="type: ambient; color: #BBB"></a-entity>
   <a-entity light="type: directional; castShadow: true; color: #FFF; intensity: 0.6;" position="-0.5 1 1"></a-entity>
   <a-sky src="#bgPic" repeat="40 20"></a-sky>
+  <a-image src="#aumPic" position="0 0 -55" width="8" height="8"></a-image>
+  <a-entity id="menu">
+    <a-text value="Whirled on the Spirit Spiral" position="0 11 -55" align="center" width="150" letter-spacing="-4">
+      <a-animation attribute="color" from="#fff" to="#660000" easing="ease-in" dur="8000" repeat="indefinite"></a-animation>
+    </a-text>
+    <a-sphere class="obs" id="startBtn" position="0 0 -55" radius="6.5" color="#4682B4" metalness="3" opacity="0.5" segments-Width="6" segments-Height="8"></a-sphere>
+    <a-text id="msg" value="Welcome, your only goal is reach the symbol.
+Just look at the spheres and it boost you well.
+JS12K 2K8 - @SubZtep" position="0 -12 -55" align="center" width="50" line-height="55" letter-spacing="-4"></a-text>
+  </a-entity>
   <a-camera camera-cursor wasd-controls="acceleration:500" fov="60">
     <a-triangle material="color:#ff0000;shader:flat;opacity:0.65" position="0 -0.012 -1" scale="0.025 0.025 1"></a-triangle>
     <a-triangle material="color:#ff0000;shader:flat;opacity:0.65" position="0 0.012 -1" scale="0.025 0.025 1" rotation="0 0 180"></a-triangle>
-    <a-entity id="ray" position="0 0 0" raycaster="objects:.obs;far:60;recursive:false;showLine:true" line="color: blue" cursor="fuse:true;fuseTimeout:500"></a-entity>
+    <a-entity id="ray" position="0 0 0" raycaster="objects:.obs;far:60;recursive:false" cursor="fuse:true;fuseTimeout:500"></a-entity>
     <a-ring id="crosshair" position="0 0 -0.99" radius-outer="0.05" radius-inner="0.04" theta-start="90" material="color:#000;shader:flat">
       <a-ring position="0 0 -1.1" radius-outer="0.06" radius-inner="0.04" material="color:#fff;shader:flat;opacity:0.3"></a-ring>
       <a-animation begin="aim" end="endAim" easing="ease-out" attribute="theta-Length" fill="forwards" from="45" to="360" dur="500"></a-animation>
     </a-ring>
     <a-text id="hud" value="" position="0 20 -50" align="center" width="50"></a-text>
   </a-camera>
-  <a-image src="#aumPic" position="0 0 -55" width="8" height="8"></a-image>
 </a-scene>
 <script>const game = new Game()</script>

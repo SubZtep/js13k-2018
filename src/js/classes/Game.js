@@ -2,9 +2,9 @@ let ins = null, // instance
 	state = {
 		scene: null,                        // A-Frame scene object
 		sky: null,                          // A-Frame sky object
+		menu: null,							// A-Frame menu object root
 		player: null,                       // A-Frame player object (the camera)
 		hud: null,                          // A-Frame HUD object
-		bin: [],                            // Temporary objects
 		lastRender: null,                   // Last render timestamp since start
 		playerStartPosZ: -10,               // Player start position on Z axis
 		playerPosZ: null,                   // Player currect position on Z axis
@@ -64,85 +64,20 @@ class Game
 
 		state.scene = document.querySelector('a-scene')
 		state.sky = document.querySelector('a-sky')
+		state.menu = document.querySelector('#menu')
 
 		if (state.scene.hasLoaded) {
-			ins.init()
+			ins.gameLoop()
 		} else {
-			state.scene.addEventListener('loaded', ins.init);
-		}
-
-	}
-
-	init()
-	{
-		// set to the default position
-		ins.movePlayer()
-
-		// Start
-		//ins.welcome()
-		//for test
-		ins.start()
-	}
-
-	welcome(replay = false)
-	{
-		// Game name text
-		let title = Game.newElement('a-text', {
-			value: 'Whirled on the Spirit Spiral',
-			position: '0 11 -55',
-			align: 'center',
-			width: 150,
-			'letter-spacing': -4
-		}, state.scene)
-		Game.newElement('a-animation', {
-			attribute: 'color',
-			from: '#fff',
-			to: '#660000',
-			easing: 'ease-in',
-			dur: 8000,
-			repeat: 'indefinite'
-		}, title)
-		state.bin.push(title)
-
-		// Start button
-		state.bin.push(Game.newElement('a-sphere', {
-			//'cursor-listener': null,
-			class: 'obs',
-			id: 'startBtn',
-			position: '0 0 -55',
-			radius: 6.5,
-			color: '#4682B4',
-			metalness: 3,
-			opacity: 0.5,
-			'segments-Width': 6,
-			'segments-Height': 8
-		}, state.scene))
-
-		if (!replay) {
-			// Description text
-			state.bin.push(Game.newElement('a-text', {
-				value: 'Welcome, your only goal is reach the symbol.\nJust look at the spheres and it boost you well.\nJS12K 2K8 - @SubZtep',
-				position: '0 -12 -55',
-				align: 'center',
-				width: 50,
-				'line-height': 55,
-				'letter-spacing': -4
-			}, state.scene))
-			//TODO: Add Starlin and Petr as special thanks, tell u have to reach the aum and plug in the connector to go online
-		}
-	}
-
-	emptyBin() {
-		while (state.bin.length > 0) {
-			let item = state.bin.pop()
-			item.parentNode.removeChild(item)
+			state.scene.addEventListener('loaded', ins.gameLoop);
 		}
 	}
 
 	// Setup environment and start game loop
 	start()
 	{
-		ins.emptyPool(state.bin)
+		// Hide menu
+		state.menu.object3D.visible = false
 
 		// Setup rings
 		for (let i = state.minZ; i < state.maxZ; i += state.ringDistance) {
@@ -160,7 +95,7 @@ class Game
 			let obj = state.scene.components.pool__obstacles.requestEntity()
 
 			// Only drop obstacles before the player
-			if (i+5 > state.playerPosZ) {
+			if (i+15 > state.playerPosZ) {
 				obj.object3D.visible = false
 			} else {
 				obj.setAttribute('class', 'obs')
@@ -177,16 +112,19 @@ class Game
 		}
 
 		// Init player
-		ins.movePlayer()
+		ins.movePlayer() //FIXME: removable
 
 		// Start game
 		state.lastRender = null
 		state.effect = null
-		window.requestAnimationFrame(ins.gameLoop)
 	}
 
 	finish()
 	{
+		// Stop effect
+		clearInterval(state.int)
+		state.int = null
+
 		// Remove objects
 		ins.emptyPool(state.rings)
 		ins.emptyPool(state.obstacles)
@@ -194,33 +132,20 @@ class Game
 		// Clear HUD
 		ins.displayHUD()
 
-		// Show finish text
-		state.bin.push(Game.newElement('a-text', {
-			value: ins.isWon() ? 'WINNER, juhuu!' : 'Noob',
-			position: '0 -12 -55',
-			align: 'center',
-			width: 50,
-			'line-height': 55,
-			'letter-spacing': -4
-		}, state.scene))
+		// Set finish text
+		document.querySelector('#msg').setAttribute(
+			'value',
+			ins.isWon() ? 'WINNER, juhuu!' : 'Noob'
+		)
 
-		// Init player
+		// Move player to default position
 		ins.movePlayer()
 
-		setTimeout(() => {
-			ins.welcome(true)
-		}, 3000)
-	}
+		// Start button shotable
+		document.querySelector('#startBtn').classList.add('obs')
 
-	emptyPool(pool)
-	{
-		while (pool.length > 0) {
-			let item = pool.pop()
-			if (typeof item.parentNode == 'undefined') {
-				item = item.obj
-			}
-			item.parentNode.removeChild(item)
-		}
+		// Show menu
+		state.menu.object3D.visible = true
 	}
 
 	/******************************************************************
@@ -264,62 +189,29 @@ class Game
 
 		ins.playEffect() // Select effect, if neccessary (different timeline)
 		ins.displayHUD()
-		ins.aim()
 	}
 
 	// Game loop rotor
 	gameLoop(timestamp)
 	{
-		//TODO: Lost window focus mess up the timestamp
-		if (state.lastRender == null) {
+		// In game
+		if (state.rings.length > 0) {
+			//TODO: Lost window focus mess up the timestamp
+			if (state.lastRender == null) {
+				state.lastRender = timestamp
+			}
+
+			ins.update(timestamp - state.lastRender)
+			ins.draw()
 			state.lastRender = timestamp
+
+			if (ins.isWon() || ins.isLost()) {
+				ins.finish()
+			}
 		}
-
-		let progress = timestamp - state.lastRender
-
-		ins.update(progress)
-		ins.draw()
-		state.lastRender = timestamp
-
-		if (ins.isWon() || ins.isLost()) {
-			ins.finish()
-			return
-		}
+		ins.aim()
 
 		window.requestAnimationFrame(ins.gameLoop)
-	}
-
-
-	/******************************************************************
-	 *
-	 * OBJECTS
-	 *
-	 */
-
-	// Create new A-Frame object
-	static newElement(name, params = {}, appendEl = null)
-	{
-		let el = document.createElement(name)
-		for (let [key, value] of Object.entries(params)) {
-			el.setAttribute(key, value)
-		}
-		if (appendEl != null) {
-			appendEl.appendChild(el)
-		}
-		else state.scene.appendChild(el)
-		return el
-	}
-
-	// remove obstacle from scene
-	static destroy(obj)
-	{
-		if (typeof obj.material != 'undefined') {
-			obj.material.metalness = 0.3
-		} else {
-			obj.el.setAttribute('material', 'metalness', 0.3)
-		}
-		obj.el.classList.remove('obs')
-		obj.el.object3D.visible = false
 	}
 
 	/******************************************************************
@@ -368,9 +260,16 @@ class Game
 	shoot()
 	{
 		if (state.aimedObj) {
-			Game.destroy(state.aimedObj)
+			if (state.aimedObj.el.id == 'startBtn') {
+				// Start game if in menu
+				state.aimedObj.el.classList.remove('obs')
+				ins.start()
+			} else {
+				// In game
+				Game.destroy(state.aimedObj)
+				ins.movePlayer(-2)
+			}
 			state.aimedObj = null
-			ins.movePlayer(-2)
 		}
 	}
 
@@ -465,9 +364,32 @@ class Game
 
 	/******************************************************************
 	 *
-	 * MOVING
+	 * MISC
 	 *
 	 */
+
+	emptyPool(pool)
+	{
+		while (pool.length > 0) {
+			let item = pool.pop()
+			if (typeof item.parentNode == 'undefined') {
+				item = item.obj
+			}
+			item.parentNode.removeChild(item)
+		}
+	}
+
+	// remove obstacle from scene
+	static destroy(obj)
+	{
+		if (typeof obj.material != 'undefined') {
+			obj.material.metalness = 0.3
+		} else {
+			obj.el.setAttribute('material', 'metalness', 0.3)
+		}
+		obj.el.classList.remove('obs')
+		obj.el.object3D.visible = false
+	}
 
 	//WIP move pool and other things
 	movePool(progress, pool, distance)
