@@ -2,34 +2,45 @@
 <title>js13k</title>
 <script src="aframe.min.js"></script>
 <script src="core.js"></script>
-<a-scene background="color:#030366" stats pool__rings="mixin:ring;size:10;dynamic:true" pool__obstacles="mixin:obstacle;size:10;dynamic:true">
+<a-scene background="color:#060606" pool__rings="mixin:ring;size:10;dynamic:true" pool__obstacles="mixin:obstacle;size:10;dynamic:true" stats>
   <a-assets><img id="aumPic" src="Tamil_Om.svg"><img id="bgPic" src="bg.svg">
-    <a-mixin id="obstacle" obstacle geometry="primitive:sphere;segmentsWidth:9;segmentsHeight:18;radius:0.3;" material="color:#4682B4;metalness:0.3;side:front"></a-mixin>
-    <a-mixin id="ring" geometry="primitive:cylinder;segmentsHeight:9;segmentsRadial:36;openEnded:true" material="color:#5ce0b6;side:back;opacity:0.4" rotation="90 0 0" scale="5 0.5 5"></a-mixin>
+    <a-mixin id="obstacle" obstacle geometry="primitive:sphere;segmentsWidth:9;segmentsHeight:18;radius:0.3;" material="color:#4682B4;metalness:0.3;side:front">
+      <a-animation attribute="color" from="#fff" to="#660000" easing="ease-in" dur="1000" repeat="indefinite"></a-animation>
+    </a-mixin>
+    <a-mixin id="ring" geometry="primitive:cylinder;segmentsHeight:9;segmentsRadial:36;openEnded:true" material="color:#fff;side:back" rotation="90 0 0" scale="5 0.5 5"></a-mixin>
   </a-assets>
   <a-light type="ambient" color="#669966"></a-light>
   <a-entity light="type: ambient; color: #BBB"></a-entity>
   <a-entity light="type: directional; castShadow: true; color: #FFF; intensity: 0.6;" position="-0.5 1 1"></a-entity>
-  <a-sky src="#bgPic" repeat="40 20"></a-sky>
-  <a-image src="#aumPic" position="0 0 -55" width="8" height="8"></a-image>
+  <a-entity rotation="90 0 0">
+    <a-sky id="sky" src="#bgPic" repeat="40 20" material="opacity:0.4"></a-sky>
+  </a-entity>
+  <a-image id="ev" src="#aumPic" position="0 0 -45" width="8" height="8"></a-image>
   <a-entity id="menu">
     <a-text value="Whirled on the Spirit Spiral" position="0 11 -55" align="center" width="150" letter-spacing="-4">
       <a-animation attribute="color" from="#fff" to="#660000" easing="ease-in" dur="8000" repeat="indefinite"></a-animation>
     </a-text>
-    <a-sphere class="obs" id="startBtn" position="0 0 -55" radius="6.5" color="#4682B4" metalness="3" opacity="0.5" segments-Width="6" segments-Height="8"></a-sphere>
+    <a-sphere class="obs" id="spc" position="-15 0 -55" radius="6.5" color="#4682B4" metalness="0.3" opacity="0.5" segments-Width="6" segments-Height="8">
+      <a-text value="PC" align="center" width="100"></a-text>
+    </a-sphere>
+    <a-sphere class="obs" id="smob" position="15 0 -55" radius="6.5" color="#4682B4" metalness="0.3" opacity="0.5" segments-Width="6" segments-Height="8">
+      <a-text value="Mobile" align="center" width="80"></a-text>
+    </a-sphere>
     <a-text id="msg" value="Welcome, your only goal is reach the symbol.
 Just look at the spheres and it boost you well.
 JS12K 2K8 - @SubZtep" position="0 -12 -55" align="center" width="50" line-height="55" letter-spacing="-4"></a-text>
   </a-entity>
-  <a-camera camera-cursor wasd-controls="acceleration:500" fov="60">
-    <a-triangle material="color:#ff0000;shader:flat;opacity:0.65" position="0 -0.012 -1" scale="0.025 0.025 1"></a-triangle>
-    <a-triangle material="color:#ff0000;shader:flat;opacity:0.65" position="0 0.012 -1" scale="0.025 0.025 1" rotation="0 0 180"></a-triangle>
-    <a-entity id="ray" position="0 0 0" raycaster="objects:.obs;far:60;recursive:false" cursor="fuse:true;fuseTimeout:500"></a-entity>
-    <a-ring id="crosshair" position="0 0 -0.99" radius-outer="0.05" radius-inner="0.04" theta-start="90" material="color:#000;shader:flat">
-      <a-ring position="0 0 -1.1" radius-outer="0.06" radius-inner="0.04" material="color:#fff;shader:flat;opacity:0.3"></a-ring>
-      <a-animation begin="aim" end="endAim" easing="ease-out" attribute="theta-Length" fill="forwards" from="45" to="360" dur="500"></a-animation>
-    </a-ring>
-    <a-text id="hud" value="" position="0 20 -50" align="center" width="50"></a-text>
-  </a-camera>
+  <a-entity id="player">
+    <a-camera rotation-listener look-controls camera-cursor wasd-controls="acceleration:500" fov="60">
+      <a-triangle material="color:#ff0000;shader:flat;opacity:0.65" position="0 -0.012 -1" scale="0.025 0.025 1"></a-triangle>
+      <a-triangle material="color:#ff0000;shader:flat;opacity:0.65" position="0 0.012 -1" scale="0.025 0.025 1" rotation="0 0 180"></a-triangle>
+      <a-entity id="ray" position="0 0 0" raycaster="objects:.obs;far:60;recursive:false" cursor="fuse:true;fuseTimeout:500"></a-entity>
+      <a-ring id="crosshair" position="0 0 -0.99" radius-outer="0.05" radius-inner="0.04" theta-start="90" material="color:#000;shader:flat">
+        <a-ring position="0 0 -1.1" radius-outer="0.06" radius-inner="0.04" material="color:#fff;shader:flat;opacity:0.3"></a-ring>
+        <a-animation begin="aim" end="endAim" easing="ease-out" attribute="theta-Length" fill="forwards" from="45" to="360" dur="500"></a-animation>
+      </a-ring>
+      <a-text id="hud" value="" position="0 20 -50" align="center" width="50"></a-text>
+    </a-camera>
+  </a-entity>
 </a-scene>
 <script>const game = new Game()</script>

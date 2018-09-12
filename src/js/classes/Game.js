@@ -1,12 +1,24 @@
 let ins = null, // instance
+	conf = {
+		pc: {
+			ver: 'pc',
+			ringDistance: 2,                    // Distance between two rings
+		},
+		mob: {
+			ver: 'mob',
+			ringDistance: 3,                    // Distance between two rings //0.6
+		},
+		curr: null
+	},
 	state = {
 		scene: null,                        // A-Frame scene object
 		sky: null,                          // A-Frame sky object
 		menu: null,							// A-Frame menu object root
 		player: null,                       // A-Frame player object (the camera)
 		hud: null,                          // A-Frame HUD object
+		ev: null,                           // A-Frame evil enemy object
+		a: null,                            // Audio context
 		lastRender: null,                   // Last render timestamp since start
-		playerStartPosZ: -10,               // Player start position on Z axis
 		playerPosZ: null,                   // Player currect position on Z axis
 		crosshair: null,                    // Crosshair object
 		aimTimeout: null,                   // Aim timeout
@@ -14,13 +26,11 @@ let ins = null, // instance
 		aimedObj: null,                     // Current aimed obj
 		ray: null,                          // A-Frame raycaster
 		int: null,                          // Effect window setInterval id
-		minZ: -55,                          // Object spawn position on Z axis
+		minZ: -45,                          // Object spawn position on Z axis
 		                                    //-15 (-15 is just close to the player, not the whole tube)
-		maxZ: 5,                            // Object destroy position on Z axis
+		maxZ: 15,                            // Object destroy position on Z axis
 		rings: [],                          // Object pool for tube rings
 		obstacles: [],                      // Object pool for obstacles
-		ringDistance: 1,                    // Distance between two rings
-		                                    //0.6
 		obstacleDistance: 3,                // Distance between two obstacles
 		                                    //3 (0.1 is a lot of objects)
 		effect: null,                       // Current effect
@@ -65,6 +75,9 @@ class Game
 		state.scene = document.querySelector('a-scene')
 		state.sky = document.querySelector('a-sky')
 		state.menu = document.querySelector('#menu')
+		state.player = document.querySelector('#player')
+		state.ev = document.querySelector('#ev')
+		state.a = new AudioContext()
 
 		if (state.scene.hasLoaded) {
 			ins.gameLoop()
@@ -80,14 +93,23 @@ class Game
 		state.menu.object3D.visible = false
 
 		// Setup rings
-		for (let i = state.minZ; i < state.maxZ; i += state.ringDistance) {
-			state.rings.push(
-				new GameObject(
-					state.scene.components.pool__rings.requestEntity(),
-					[0, 2, i],
-					0.003
-				)
+		for (let i = state.minZ; i < state.maxZ; i += conf.curr.ringDistance) {
+			let o = new GameObject(
+				state.scene.components.pool__rings.requestEntity(),
+				[0, 2, i],
+				0.003
 			)
+			/* let a = document.createElement('a-animation')
+			a.setAttribute('begin', 'hit')
+			a.setAttribute('attribute', 'material.opacity')
+			a.setAttribute('from', '1')
+			a.setAttribute('to', '0.1')
+			a.setAttribute('direction', 'alternate')
+			a.setAttribute('repeat', '1')
+			//a.setAttribute('easing', 'ease-in')
+			a.setAttribute('dur', '400')
+			o.obj.appendChild(a) */
+			state.rings.push(o)
 		}
 
 		// Setup obstacles
@@ -113,6 +135,9 @@ class Game
 
 		// Init player
 		ins.movePlayer() //FIXME: removable
+
+		// Set enemy
+		ins.evHurt()
 
 		// Start game
 		state.lastRender = null
@@ -142,7 +167,7 @@ class Game
 		ins.movePlayer()
 
 		// Start button shotable
-		document.querySelector('#startBtn').classList.add('obs')
+		document.querySelector('#s'+conf.curr.ver).classList.add('obs')
 
 		// Show menu
 		state.menu.object3D.visible = true
@@ -157,7 +182,7 @@ class Game
 	// Calculate objects next position
 	update(progress)
 	{
-		ins.movePool(progress, state.rings, state.ringDistance)
+		ins.movePool(progress, state.rings, conf.curr.ringDistance)
 		ins.movePool(progress, state.obstacles, state.obstacleDistance)
 
 		// Select effect, if neccessary (different timeline)
@@ -196,7 +221,7 @@ class Game
 	{
 		// In game
 		if (state.rings.length > 0) {
-			//TODO: Lost window focus mess up the timestamp
+			//FIXME: Lost window focus mess up the timestamp
 			if (state.lastRender == null) {
 				state.lastRender = timestamp
 			}
@@ -260,14 +285,22 @@ class Game
 	shoot()
 	{
 		if (state.aimedObj) {
-			if (state.aimedObj.el.id == 'startBtn') {
+			let id = state.aimedObj.el.id
+			if (id == 'spc' || id == 'smob') {
 				// Start game if in menu
 				state.aimedObj.el.classList.remove('obs')
+				conf.curr = conf[id.substr(1)]
+				state.aimedObj.material.metalness = 0.3
 				ins.start()
 			} else {
 				// In game
 				Game.destroy(state.aimedObj)
+				ins.changeColour()
 				ins.movePlayer(-2)
+
+				ins.beep(400, 0.1)
+				ins.beep(300, 0.12, 0.03)
+				ins.beep(200, 0.1, 0.1)
 			}
 			state.aimedObj = null
 		}
@@ -276,7 +309,6 @@ class Game
 	// Tells if player won atm
 	isWon()
 	{
-		//return state.playerPosZ <= -50
 		return state.playerPosZ <= state.minZ + 5
 	}
 
@@ -284,6 +316,15 @@ class Game
 	isLost()
 	{
 		return state.playerPosZ >= state.maxZ
+	}
+
+	// Player % to finish
+	getProgress()
+	{
+		let m = state.maxZ - state.minZ,
+			p = -state.playerPosZ + state.maxZ,
+			v = Math.round(p / (m / 100))
+		return v < 0 ? 0 : v
 	}
 
 	/******************************************************************
@@ -295,13 +336,15 @@ class Game
 	// Update HUD values
 	displayHUD()
 	{
+		//return
 		state.hud.setAttribute(
 			'value',
 			state.rings.length > 0
 				? `minZ: ${state.minZ}, maxZ: ${state.maxZ}, playerPosZ: ${state.playerPosZ}, `+
 				  `realpos: ${parseFloat(state.player.object3D.position.x).toFixed(2)},`+
 				  `${parseFloat(state.player.object3D.position.y).toFixed(2)},`+
-				  `${parseFloat(state.player.object3D.position.z).toFixed(2)}, effect: ${state.effect}`
+				  `${parseFloat(state.player.object3D.position.z).toFixed(2)}`+
+				  ` effect: ${state.effect}, progress:${ins.getProgress()}`
 				: ''
 		)
 	}
@@ -360,6 +403,40 @@ class Game
 				}
 			}
 		}
+	}
+
+	changeColour()
+	{
+		//full: (1<<24)
+		let c = '#'+('00000'+(Math.random()*(4<<14)|0).toString(16)).slice(-6)
+		for (let ring of state.rings) {
+			ring.obj.setAttribute('material', 'color', c)
+			/* ring.obj.emit('hit')
+			setTimeout(() => {
+				ring.obj.setAttribute('material', 'color', c)
+			}, 200) // half fade anim time */
+		}
+	}
+
+	// Change evil enemy opacity
+	evHurt()
+	{
+		state.ev.setAttribute('opacity', (100 - ins.getProgress()) / 100)
+	}
+
+	// Play sound
+	beep(freq = 100, duration = 0.1, delay = 0)
+	{
+		if (!state.a) return
+		let v = state.a.createOscillator(),
+			u = state.a.createGain()
+		v.connect(u)
+		v.frequency.value = freq
+		v.type = 'square'
+		u.connect(state.a.destination)
+		u.gain.value = 0.08   // volume
+		v.start(state.a.currentTime + delay)
+		v.stop(state.a.currentTime + duration + delay)
 	}
 
 	/******************************************************************
@@ -431,10 +508,11 @@ class Game
 	{
 		if (dist == null) {
 			// Move player to default position
-			state.playerPosZ = state.playerStartPosZ
-			state.player.object3D.position.z = state.playerPosZ
+			state.playerPosZ = 0
+			state.player.object3D.position.z = 0
 		} else {
 			state.playerPosZ += dist
+			ins.evHurt()
 		}
 	}
 }

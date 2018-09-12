@@ -8,11 +8,19 @@ a-assets
 		geometry="primitive:sphere;segmentsWidth:9;segmentsHeight:18;radius:0.3;"
 		material="color:#4682B4;metalness:0.3;side:front"
 	)
-	//- obstacle side:double?
+		a-animation(
+			attribute="color"
+			from="#fff"
+			to="#660000"
+			easing="ease-in"
+			dur="1000"
+			repeat="indefinite"
+		)
+		//-a-mixin id="fade" attribute="material.opacity" begin="fade" to="0"
 
 	a-mixin#ring(
 		geometry="primitive:cylinder;segmentsHeight:9;segmentsRadial:36;openEnded:true"
-		material="color:#5ce0b6;side:back;opacity:0.4"
+		material="color:#fff;side:back"
 		rotation="90 0 0"
 		scale="5 0.5 5"
 	)

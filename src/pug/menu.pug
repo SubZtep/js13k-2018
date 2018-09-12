@@ -16,15 +16,36 @@ a-entity#menu
 			repeat="indefinite"
 		)
 
-	a-sphere#startBtn.obs(
-		position="0 0 -55"
+	a-sphere#spc.obs(
+		position="-15 0 -55"
 		radius="6.5"
 		color="#4682B4"
-		metalness="3"
+		metalness="0.3"
 		opacity="0.5"
 		segments-Width="6"
 		segments-Height="8"
 	)
+		a-text(
+			value="PC"
+			align="center"
+			width="100"
+		)
+
+	a-sphere#smob.obs(
+		position="15 0 -55"
+		radius="6.5"
+		color="#4682B4"
+		metalness="0.3"
+		opacity="0.5"
+		segments-Width="6"
+		segments-Height="8"
+	)
+		a-text(
+			value="Mobile"
+			align="center"
+			width="80"
+		)
+
 
 	//- Intro text
 	a-text#msg(

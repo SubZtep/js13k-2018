@@ -23,7 +23,6 @@ class GameObject
 
 	redraw()
 	{
-		//this.obj.setAttribute('position', this.pos.join(' '))
 		this.obj.object3D.position.set(...this.pos)
 	}
 }
