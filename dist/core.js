@@ -381,9 +381,10 @@ class Game
 				ins.changeColour()
 				ins.movePlayer(-2)
 
-				ins.beep(400, 0.1)
-				ins.beep(300, 0.12, 0.03)
-				ins.beep(200, 0.1, 0.1)
+				ins.beep(300, 0.1)
+				ins.beep(200, 0.12, 0.03)
+				ins.beep(100, 0.1, 0.1)
+				ins.beep(600, 0.01, 0.19)
 			}
 			state.aimedObj = null
 		}

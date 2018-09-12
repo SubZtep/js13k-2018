@@ -16,6 +16,13 @@ a-entity#menu
 			repeat="indefinite"
 		)
 
+	//- low poly
+		a-sphere#spc.obs(
+			position="-15 0 -55"
+			metalness="0.3"
+			material="flatShading:true;color: #4682B4;opacity:0.6;"
+			geometry="primitive:sphere;radius:6.5; segmentsWidth: 8; segmentsHeight:5"
+		)
 	a-sphere#spc.obs(
 		position="-15 0 -55"
 		radius="6.5"
@@ -50,11 +57,12 @@ a-entity#menu
 	//- Intro text
 	a-text#msg(
 		value="Welcome, your only goal is reach the symbol.\n"+
-			"Just look at the spheres and it boost you well.\n"+
-			"JS12K 2K8 - @SubZtep"
+			"Just look at the spheres and it boost you well."
 		position="0 -12 -55"
 		align="center"
 		width="50"
 		line-height="55"
 		letter-spacing="-4"
 	)
+
+	//-"JS12K 2K8 - @SubZtep"

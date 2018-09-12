@@ -3,7 +3,7 @@
 <script src="aframe.min.js"></script>
 <script src="core.js"></script>
 <a-scene background="color:#060606" pool__rings="mixin:ring;size:10;dynamic:true" pool__obstacles="mixin:obstacle;size:10;dynamic:true" stats>
-  <a-assets><img id="aumPic" src="Tamil_Om.svg"><img id="bgPic" src="bg.svg">
+  <a-assets><img id="aumPic" src="Tamil_Om.svg"><img id="bgPic" src="bg.svg"><img id="starPic" src="star.svg"><img id="pentaPic" src="pentagram.svg">
     <a-mixin id="obstacle" obstacle geometry="primitive:sphere;segmentsWidth:9;segmentsHeight:18;radius:0.3;" material="color:#4682B4;metalness:0.3;side:front">
       <a-animation attribute="color" from="#fff" to="#660000" easing="ease-in" dur="1000" repeat="indefinite"></a-animation>
     </a-mixin>
@@ -27,8 +27,7 @@
       <a-text value="Mobile" align="center" width="80"></a-text>
     </a-sphere>
     <a-text id="msg" value="Welcome, your only goal is reach the symbol.
-Just look at the spheres and it boost you well.
-JS12K 2K8 - @SubZtep" position="0 -12 -55" align="center" width="50" line-height="55" letter-spacing="-4"></a-text>
+Just look at the spheres and it boost you well." position="0 -12 -55" align="center" width="50" line-height="55" letter-spacing="-4"></a-text>
   </a-entity>
   <a-entity id="player">
     <a-camera rotation-listener look-controls camera-cursor wasd-controls="acceleration:500" fov="60">
@@ -42,5 +41,6 @@ JS12K 2K8 - @SubZtep" position="0 -12 -55" align="center" width="50" line-height
       <a-text id="hud" value="" position="0 20 -50" align="center" width="50"></a-text>
     </a-camera>
   </a-entity>
+  <a-image id="penta" src="#pentaPic" position="0 0 -30" width="10" height="10" material="side:double;transparent:true;opacity:1;color:red"></a-image>
 </a-scene>
 <script>const game = new Game()</script>
