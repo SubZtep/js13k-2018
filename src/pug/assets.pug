@@ -1,29 +1,57 @@
+//- Various assets and mixins
+
 a-assets
-	//-img#aumPic(src="aum.svg")
-	img#aumPic(src="Tamil_Om.svg")
+	//- Images
 	img#bgPic(src="bg.svg")
-	img#starPic(src="star.svg")
-	img#pentaPic(src="pentagram.svg")
+	img#aumPic(src="Tamil_Om.svg")
+	img#pentaPic(src="penta.svg")
+
+	//-------------------------------------
+	//- Objects
 
 	a-mixin#obstacle(
 		obstacle
-		geometry="primitive:sphere;segmentsWidth:9;segmentsHeight:18;radius:0.3;"
-		material="color:#4682B4;metalness:0.3;side:front"
-	)
-		a-animation(
-			attribute="color"
-			from="#fff"
-			to="#660000"
-			easing="ease-in"
-			dur="1000"
-			repeat="indefinite"
-		)
-		//-a-mixin id="fade" attribute="material.opacity" begin="fade" to="0"
+		geometry="primitive:sphere;radius:0.3;segmentsWidth:8;segmentsHeight:5"
+		material="flatShading:true;color:#830303;metalness:0.3")
 
 	a-mixin#ring(
 		geometry="primitive:cylinder;segmentsHeight:9;segmentsRadial:36;openEnded:true"
 		material="color:#fff;side:back"
 		rotation="90 0 0"
-		scale="5 0.5 5"
-	)
-	//- ring side:back,front,double?
+		scale="5 0.8 5")
+
+	//-------------------------------------
+	//- Animations
+
+	a-mixin#brot(
+		attribute="rotation"
+		from="0 0 0"
+		to="0 25 0"
+		dur="250"
+		direction="alternate"
+		repeat="indefinite")
+
+	a-mixin#trot(
+		attribute="rotation"
+		from="-0.5 0 -2"
+		to="0.5 0 2"
+		dur="500"
+		direction="alternate"
+		repeat="indefinite")
+
+	//-------------------------------------
+	//- Text
+
+	a-mixin#title(
+		text="align:center;width:15;letterSpacing:-4;value:Whirled on the Spirit Spiral"
+		position="0 1.5 -5")
+
+	a-mixin#story(
+		text="align:center;width:5;lineHeight:52;letterSpacing:-0.5;value:"+
+			"Evil Enemy, the Duplicitous with a devious blow did toss "+
+			"to his Wormhole the legacy of humans. In a semigloss moment "+
+			"the Elders of the Internet are pangloss about You will reach "+
+			"the dead end corridor and bring it back to their personages, "+
+			"who faces too much play outside not in the places where they "+
+			"enter secrets to databases. Let it go."
+		position="0 -0.6 -5")

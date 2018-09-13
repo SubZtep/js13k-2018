@@ -1,0 +1,31 @@
+a-image#ev(
+	src="#aumPic"
+	position="0.5 2 -45"
+	width="8"
+	height="8")
+
+a-image#penta(
+	src="#pentaPic"
+	position="0.7 2.5 -45.1"
+	width="10"
+	height="10"
+	scale="0 0 0"
+	material="side:front;transparent:true;opacity:1;color:darkred")
+	a-animation(
+		begin="dang"
+		attribute="position"
+		from="0.7 2.5 -45.1"
+		to="0.7 2.5 -10"
+		dur="1800"
+		easing="ease-in"
+		direction="alternate"
+		repeat="1")
+	a-animation(
+		begin="dang"
+		attribute="scale"
+		from="0 0 0"
+		to="5 5 5"
+		dur="1800"
+		easing="ease-in"
+		direction ="alternate"
+		repeat="1")

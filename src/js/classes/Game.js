@@ -14,8 +14,11 @@ let ins = null, // instance
 		scene: null,                        // A-Frame scene object
 		sky: null,                          // A-Frame sky object
 		menu: null,							// A-Frame menu object root
+		mc: null,                           // A-Frame menu circle object
 		player: null,                       // A-Frame player object (the camera)
+		// @if NODE_ENV!='production'
 		hud: null,                          // A-Frame HUD object
+		// @endif
 		ev: null,                           // A-Frame evil enemy object
 		a: null,                            // Audio context
 		lastRender: null,                   // Last render timestamp since start
@@ -31,10 +34,11 @@ let ins = null, // instance
 		maxZ: 15,                            // Object destroy position on Z axis
 		rings: [],                          // Object pool for tube rings
 		obstacles: [],                      // Object pool for obstacles
-		obstacleDistance: 3,                // Distance between two obstacles
+		obstacleDistance: 2.5,                // Distance between two obstacles
 		                                    //3 (0.1 is a lot of objects)
 		effect: null,                       // Current effect
 		effectSpeed: 0.01,                  // Effect speed
+		incu: false
 	},
 	effects = { // All Effects
 		wave: {
@@ -75,6 +79,7 @@ class Game
 		state.scene = document.querySelector('a-scene')
 		state.sky = document.querySelector('a-sky')
 		state.menu = document.querySelector('#menu')
+		state.mc = document.querySelector('#mc')
 		state.player = document.querySelector('#player')
 		state.ev = document.querySelector('#ev')
 		state.a = new AudioContext()
@@ -90,6 +95,7 @@ class Game
 	start()
 	{
 		// Hide menu
+		state.mc.emit('coff')
 		state.menu.object3D.visible = false
 
 		// Setup rings
@@ -99,22 +105,16 @@ class Game
 				[0, 2, i],
 				0.003
 			)
-			/* let a = document.createElement('a-animation')
-			a.setAttribute('begin', 'hit')
-			a.setAttribute('attribute', 'material.opacity')
-			a.setAttribute('from', '1')
-			a.setAttribute('to', '0.1')
-			a.setAttribute('direction', 'alternate')
-			a.setAttribute('repeat', '1')
-			//a.setAttribute('easing', 'ease-in')
-			a.setAttribute('dur', '400')
-			o.obj.appendChild(a) */
 			state.rings.push(o)
 		}
 
 		// Setup obstacles
 		for (let i = state.minZ; i < state.maxZ; i += state.obstacleDistance) {
 			let obj = state.scene.components.pool__obstacles.requestEntity()
+
+			let a = document.createElement('a-animation')
+			a.setAttribute('mixin', 'brot')
+			obj.appendChild(a)
 
 			// Only drop obstacles before the player
 			if (i+15 > state.playerPosZ) {
@@ -138,6 +138,7 @@ class Game
 
 		// Set enemy
 		ins.evHurt()
+		state.incu = false
 
 		// Start game
 		state.lastRender = null
@@ -154,14 +155,29 @@ class Game
 		ins.emptyPool(state.rings)
 		ins.emptyPool(state.obstacles)
 
+		// @if NODE_ENV!='production'
 		// Clear HUD
 		ins.displayHUD()
+		// @endif
 
 		// Set finish text
-		document.querySelector('#msg').setAttribute(
-			'value',
-			ins.isWon() ? 'WINNER, juhuu!' : 'Noob'
-		)
+		for (let o of document.querySelectorAll('.story')) {
+			o.setAttribute(
+				'value',
+				ins.isWon()
+					? 'You reached the end of the Wormhole, very nice, you got the '+
+						'Internet from Evil Enemy, like a fairy. Congratulations, you '+
+						'just made him upset, once you meet with the people tell them do '+
+						'not be happy, the opposed. Download what you just can quickly, '+
+						'he is really evil and perhaps bored being offline and will come '+
+						'back to show how to quackery.'
+					: 'Evil Enemy shows why his citous is dupli, shews you them '+
+						'of wormhole, you fall back to the people. Falling pretty '+
+						'boring, you want to check some... oh blaspheme, you learnt '+
+						'from the evil, who keep using the people Internet, people are '+
+						'offline and blame you. Very bad, try to go back!'
+			)
+		}
 
 		// Move player to default position
 		ins.movePlayer()
@@ -170,6 +186,7 @@ class Game
 		document.querySelector('#s'+conf.curr.ver).classList.add('obs')
 
 		// Show menu
+		state.mc.emit('con')
 		state.menu.object3D.visible = true
 	}
 
@@ -213,7 +230,9 @@ class Game
 		}
 
 		ins.playEffect() // Select effect, if neccessary (different timeline)
+		// @if NODE_ENV!='production'
 		ins.displayHUD()
+		// @endif
 	}
 
 	// Game loop rotor
@@ -296,7 +315,7 @@ class Game
 				// In game
 				Game.destroy(state.aimedObj)
 				ins.changeColour()
-				ins.movePlayer(-2)
+				ins.movePlayer(-1)
 
 				ins.beep(300, 0.1)
 				ins.beep(200, 0.12, 0.03)
@@ -334,6 +353,7 @@ class Game
 	 *
 	 */
 
+	// @if NODE_ENV!='production'
 	// Update HUD values
 	displayHUD()
 	{
@@ -349,6 +369,7 @@ class Game
 				: ''
 		)
 	}
+	// @endif
 
 	// Start next effect loop
 	startEffect()
@@ -433,9 +454,9 @@ class Game
 			u = state.a.createGain()
 		v.connect(u)
 		v.frequency.value = freq
-		v.type = 'square'
+		v.type = 'sine'
 		u.connect(state.a.destination)
-		u.gain.value = 0.08   // volume
+		u.gain.value = 0.1   // volume
 		v.start(state.a.currentTime + delay)
 		v.stop(state.a.currentTime + duration + delay)
 	}
@@ -514,6 +535,11 @@ class Game
 		} else {
 			state.playerPosZ += dist
 			ins.evHurt()
+		}
+
+		if (!state.incu && state.playerPosZ <= state.minZ + 20) {
+			document.querySelector('#penta').emit('dang')
+			state.incu = true
 		}
 	}
 }

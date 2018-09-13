@@ -3,13 +3,12 @@ AFRAME.registerShader('gradient', {
 	schema: {
 		topColor: {
 			type: 'vec3',
-			default: { x: 255, y: 0, z: 0 },
+			default: { x: 255, y: 255, z: 255 },
 			is: 'uniform'
 		},
 		bottomColor: {
 			type: 'vec3',
-			//default: '0 0 255',
-			default: { x: 0, y: 0, z: 255 },
+			default: { x: 0, y: 0, z: 0 },
 			is: 'uniform'
 		},
 		offset: {

@@ -1,15 +1,23 @@
 {
-  "name": "js13k",
-  "description": "2018 js13kgames entry",
-  "version": "1.0.0",
-  "author": "Andras Serfozo",
-  "license": "MIT",
-  "private": true,
-  "devDependencies": {
-    "eslint": "^5.4.0",
-    "gulp": "^4.0.0",
-    "gulp-babel-minify": "^0.4.3",
-    "gulp-concat": "^2.6.1",
-    "gulp-pug": "^4.0.1"
-  }
+	"name": "js13k",
+	"description": "2018 js13kgames entry",
+	"version": "1.0.0",
+	"author": "Andras Serfozo",
+	"license": "MIT",
+	"private": true,
+	"devDependencies": {
+		"cross-env": "^5.2.0",
+		"eslint": "^5.4.0",
+		"gulp": "^4.0.0",
+		"gulp-babel-minify": "^0.4.3",
+		"gulp-concat": "^2.6.1",
+		"gulp-if": "^2.0.2",
+		"gulp-preprocess": "^3.0.1",
+		"gulp-pug": "^4.0.1"
+	},
+	"scripts": {
+		"dev": "cross-env NODE_ENV=development node_modules/gulp/bin/gulp.js",
+		"watch": "cross-env NODE_ENV=development node_modules/gulp/bin/gulp.js watch",
+		"build": "cross-env NODE_ENV=production node_modules/gulp/bin/gulp.js"
+	}
 }

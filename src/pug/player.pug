@@ -1,50 +1,37 @@
 //- Player
 a-entity#player
 	a-camera(
-		rotation-listener
-
-		look-controls
 		camera-cursor
-		wasd-controls="acceleration:500"
-		fov="60"
-	)
+		look-controls
+		rotation-listener
+		wasd-controls=(!prod ? "acceleration:500" : false)
+		fov="60")
+
+		//- Crosshair
 		a-triangle(
 			material="color:#ff0000;shader:flat;opacity:0.65"
 			position="0 -0.012 -1"
-			scale="0.025 0.025 1"
-		)
+			scale="0.025 0.025 1")
 		a-triangle(
 			material="color:#ff0000;shader:flat;opacity:0.65"
 			position="0 0.012 -1"
 			scale="0.025 0.025 1"
-			rotation="0 0 180"
-		)
+			rotation="0 0 180")
 		a-entity#ray(
 			position="0 0 0"
 			raycaster="objects:.obs;far:60;recursive:false"
-			cursor="fuse:true;fuseTimeout:500"
-		)
-		//-
-			a-entity#ray(
-				position="0 0 0"
-				raycaster="objects:.obs;far:60;recursive:false;showLine:true"
-				line="color: blue"
-				cursor="fuse:true;fuseTimeout:500"
-			)
+			cursor="fuse:true;fuseTimeout:500")
 		a-ring#crosshair(
 			position="0 0 -0.99"
 			radius-outer="0.05"
 			radius-inner="0.04"
 			theta-start="90"
-			material="color:#000;shader:flat"
-		)
+			material="color:#000;shader:flat")
 			a-ring(
-				position="0 0 -1.1"
+				position="0 0 -0.1"
 				radius-outer="0.06"
 				radius-inner="0.04"
-				material="color:#fff;shader:flat;opacity:0.3"
-			)
-			//- dur = state.aimLength
+				material="color:#fff;shader:flat;opacity:0.3")
 			a-animation(
 				begin="aim"
 				end="endAim"
@@ -53,11 +40,13 @@ a-entity#player
 				fill="forwards"
 				from="45"
 				to="360"
-				dur="500"
-			)
+				dur="500")
+				//- dur = state.aimLength
+
+		// @if NODE_ENV!='production'
 		a-text#hud(
 			value=""
-			position="0 20 -50"
+			position="0 0.5 -1"
 			align="center"
-			width="50"
-		)
+			width="1")
+		// @endif

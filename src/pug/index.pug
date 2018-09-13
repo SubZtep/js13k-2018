@@ -1,28 +1,27 @@
 doctype html
 title js13k
-//-script(src="https://aframe.io/releases/0.8.2/aframe.min.js")
+
+// @if NODE_ENV='production'
+script(src="https://aframe.io/releases/0.8.2/aframe.min.js")
+// @endif
+
+// @if NODE_ENV!='production'
 script(src="aframe.min.js")
-script(src="core.js")
+// @endif
+
+script(src="a.js")
 
 a-scene(
 	background="color:#060606"
 	pool__rings="mixin:ring;size:10;dynamic:true"
-	pool__obstacles="mixin:obstacle;size:10;dynamic:true"
-	stats
-)
+	pool__obstacles="mixin:obstacle;size:10;dynamic:true")
+	//-stats=!prod)
+
 	include assets.pug
 	include skylights.pug
-
-	a-image#ev(
-		src="#aumPic"
-		position="0 0 -45"
-		width="8"
-		height="8"
-	)
-
+	include dark.pug
 	include menu.pug
 	include player.pug
-	include objects.pug
 
 script.
-	const game = new Game()
+	new Game()

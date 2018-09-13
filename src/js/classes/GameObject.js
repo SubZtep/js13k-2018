@@ -13,7 +13,6 @@ class GameObject
 		this.pos = pos
 		this.speed = speed
 		this.type = type
-		this.rot = [0, 0, 0]
 	}
 
 	recalc(progress, speedMulti = 1)
